@@ -311,15 +311,172 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void setNewLandmarks(ArrayList<Point> landmarks, Bitmap bmp,int[] max) {
+
+        int SENSITIVITY_THRESHOLD = 10;
+        int H_SCROLL_THRESHOLD = 20;
+        int V_SCROLL_THRESHOLD = 20;
+        int NOSE_COMPENSATION = 2;
+        double H_SPEED = 1.5;
+        double V_SPEED = 2;
+
+
+        boolean scrollMode = false;
+
+
+
         this.landmarks = landmarks;
        int vpositive, hpositive;
 
         int deltaH = (landmarks.get(30).x - landmarks.get(2).x) - (landmarks.get(14).x - landmarks.get(30).x);
-        int deltaV = (landmarks.get(30).y - landmarks.get(27).y) - (landmarks.get(8).y - landmarks.get(30).y)+40;
+        int deltaV = (landmarks.get(30).y - landmarks.get(27).y)*NOSE_COMPENSATION - (landmarks.get(8).y - landmarks.get(30).y);
         hpositive = deltaH > 0 ? 1 : -1;
         vpositive = deltaV > 0 ? 1 : -1;
 
-        if(vpositive == -1) deltaV *= 3;
+
+        if(Math.abs(deltaH) > SENSITIVITY_THRESHOLD ||  Math.abs(deltaV) > SENSITIVITY_THRESHOLD ){
+
+            deltaH = (int)(deltaH*H_SPEED) - SENSITIVITY_THRESHOLD*hpositive;
+            deltaV = (int) (deltaV*V_SPEED) -SENSITIVITY_THRESHOLD*vpositive;
+
+            int newHorizontalCoord = (int)(mCursor.getX() + deltaH);
+            int newVerticalCoord = (int)(mCursor.getY() + deltaV);
+
+            int horizontalScroll = mWebView.getScrollX();
+            int verticalScroll = mWebView.getScrollY();
+
+
+            int horizontalScrollMax = mWebView.computeHorizontalScrollRange() - width;
+            int verticalScrollMax = mWebView.computeVerticalScrollRange()-height;
+
+
+            // VERTICAL BOTTOM
+            if(newVerticalCoord >= (height-V_SCROLL_THRESHOLD)){ //new coord would be in scrollzone
+                if(mWebView.getScrollY()< verticalScrollMax ){ //scroll down is possible
+                    scrollMode = true;
+                    if((verticalScroll+deltaV)<= verticalScrollMax ){ // scroll range will not be crossed
+                        verticalScroll+= deltaV;
+                    }
+                    else{ //scroll range would be crossed so scroll to one half of leftover.
+                        verticalScroll += (verticalScrollMax-verticalScroll)/2;
+                        if(verticalScroll>verticalScrollMax-5){
+                            verticalScroll = verticalScrollMax;
+                        }
+                    }
+                }
+                else {
+                    if(newVerticalCoord < height){
+                        //do nothing
+                    }
+                    else{
+                        newVerticalCoord = (int)(mCursor.getY()+(((height - mCursor.getY())/2)));
+
+                        if(newVerticalCoord>verticalScrollMax-5){
+                            newVerticalCoord = height;
+                        }
+                    }
+                }
+
+
+
+            }
+            // VERTICAL TOP
+            if(newVerticalCoord <= V_SCROLL_THRESHOLD){
+                if(mWebView.getScrollY()> 0 ){ //scroll up is possible
+                    scrollMode = true;
+                    if((verticalScroll+deltaV)<= 0 ){ // scroll range will not be crossed
+                        verticalScroll+= deltaV;
+                    }
+                    else{
+                        verticalScroll = verticalScroll/2;
+                        if(verticalScroll<5){
+                            verticalScroll = 0;
+                        }
+                    }
+                }
+                else {
+                    if(newVerticalCoord > 0){
+                        //do nothing
+                    }
+                    else{
+                        newVerticalCoord = (int)(mCursor.getY()/2);
+                        if(newVerticalCoord<5){
+                            newVerticalCoord = 0;
+                        }
+                    }
+                }
+            }
+
+            //HORIZONTAL RIGHT
+            if(newHorizontalCoord >= (width-H_SCROLL_THRESHOLD)){
+                if(mWebView.getScrollX()< horizontalScrollMax ){ //scroll right is possible
+                    scrollMode = true;
+                    if((horizontalScroll+deltaH)<= horizontalScroll ){ // scroll range will not be crossed
+                        horizontalScroll+= deltaH;
+                    }
+                    else{ //scroll range would be crossed so scroll to one half of leftover.
+                        horizontalScroll += (horizontalScrollMax-horizontalScroll)/2;
+                        if(horizontalScroll>horizontalScrollMax-5){
+                            horizontalScroll = horizontalScrollMax;
+                        }
+                    }
+                }
+                else {
+                    if(newHorizontalCoord < width){
+                        //do nothing
+                    }
+                    else{
+                        newHorizontalCoord = (int)(mCursor.getX()+(((width - mCursor.getX())/2)));
+
+                        if(newHorizontalCoord > verticalScrollMax-5){
+                            newHorizontalCoord = width;
+                        }
+                    }
+                }
+            }
+
+            //HORIZONTAL LEFT
+            if(newHorizontalCoord <= H_SCROLL_THRESHOLD){
+                if(mWebView.getScrollX()> 0 ){ //scroll left is possible
+                    scrollMode = true;
+                    if((horizontalScroll+deltaH)<= 0 ){ // scroll range will not be crossed
+                        horizontalScroll+= deltaH;
+                    }
+                    else{
+                        horizontalScroll = horizontalScroll/2;
+                        if(horizontalScroll<5){
+                            horizontalScroll = 0;
+                        }
+                    }
+                }
+                else {
+                    if(newHorizontalCoord > 0){
+                        //do nothing
+                    }
+                    else{
+                        newHorizontalCoord = (int)(mCursor.getX()/2);
+                        if(newHorizontalCoord<5){
+                            newHorizontalCoord = 0;
+                        }
+                    }
+                }
+            }
+
+
+
+            if(scrollMode){
+
+                mWebView.scrollTo(horizontalScroll,verticalScroll);
+            }
+            else {
+                mCursor.moveTo(newHorizontalCoord,newVerticalCoord);
+            }
+
+
+        }
+
+
+
+        /* GESTURES */
         int smile = (landmarks.get(66).y - landmarks.get(62).y) * (landmarks.get(54).x - landmarks.get(49).x);
         int headtilt =  landmarks.get(27).x - landmarks.get(8).x;
 
@@ -377,52 +534,6 @@ public class MainActivity extends AppCompatActivity {
             mCursor.setColorFilter(null);
         }
 
-        if(Math.abs(deltaH) > 10 ||  Math.abs(deltaV) > 10 ){
-
-
-            int newHorizontalCoord = (int)mCursor.getX() + deltaH + 10*hpositive;
-            int newVerticalCoord = (int)((mCursor.getY() + deltaV + 10*vpositive));
-
-
-
-
-
-            if(newVerticalCoord >= height){
-                int i = mWebView.computeVerticalScrollRange()-height;
-                int j = mWebView.getScrollY();
-
-                int newScrollPosition;
-
-                if(mWebView.getScrollY()+deltaV> i){
-
-                }
-                mWebView.scrollTo(mWebView.getScrollX(),mWebView.getScrollY()+deltaV);
-
-            } 
-
-            if(newVerticalCoord <= 0){
-                mWebView.scrollTo(mWebView.getScrollX(),mWebView.getScrollY()+deltaV);
-            }
-
-            if(newHorizontalCoord >= width){
-                mWebView.scrollTo(mWebView.getScrollX()+deltaH,mWebView.getScrollY()+deltaV);
-            }
-
-            if(newHorizontalCoord <= 0){
-                mWebView.scrollTo(mWebView.getScrollX()+deltaH,mWebView.getScrollY()+deltaV);
-            }
-
-
-
-            if(newHorizontalCoord >= width || newHorizontalCoord <= 0) newHorizontalCoord = (int)mCursor.getX();
-            if(newVerticalCoord >= height || newVerticalCoord <= 0)  newVerticalCoord = (int)mCursor.getY();
-
-
-
-
-            mCursor.moveTo(newHorizontalCoord,newVerticalCoord);
-
-        }
 
 
 

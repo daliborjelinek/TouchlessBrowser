@@ -296,16 +296,17 @@ public class OnGetImageListener implements OnImageAvailableListener {
                                 if(landmarks.get(30).x < max[3]) max[3] = landmarks.get(30).x;
 
                                 int smile = (landmarks.get(66).y - landmarks.get(62).y) * (landmarks.get(54).x - landmarks.get(49).x);
-                                vertical = (landmarks.get(30).y - landmarks.get(27).y) - (landmarks.get(8).y - landmarks.get(30).y)+30;
+                                vertical = (landmarks.get(30).y - landmarks.get(27).y)*2 - (landmarks.get(8).y - landmarks.get(30).y);
                                 horizontal = (landmarks.get(30).x -landmarks.get(2).x) - (landmarks.get(14).x - landmarks.get(30).x);
 
 
+                                canvas.drawText("s: "+ Integer.toString(smile),100,100,infoPaint);
+                                canvas.drawText("v: "+ Integer.toString(vertical),100,200,infoPaint);
+                                canvas.drawText("h: "+ Integer.toString(horizontal),100,300,infoPaint);
 
-                                    canvas.drawText(Integer.toString(max[0]),100,100,infoPaint);
-                                canvas.drawText(Integer.toString(landmarks.get(27).x - landmarks.get(8).x),200,100,infoPaint);
-                                canvas.drawText(Integer.toString(max[1]),100,200,infoPaint);
-                                canvas.drawText(Integer.toString(max[2]),100,300,infoPaint);
-                                canvas.drawText(Integer.toString(max[3]),100,400,infoPaint);
+                                canvas.drawText("t: "+ Integer.toString((landmarks.get(30).y - landmarks.get(27).y)),250,200,infoPaint);
+                                canvas.drawText("d: "+ Integer.toString((landmarks.get(8).y - landmarks.get(30).y)),250,300,infoPaint);
+
                                 for (Point point : landmarks) {
 
                                     int pointX = (int) (point.x * resizeRatio);
