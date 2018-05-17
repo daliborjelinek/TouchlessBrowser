@@ -17,7 +17,7 @@ import android.widget.Toast;
  * Created by Dalibor Jelínek on 04.04.2018.
  */
 
-public class CustomDialogClass extends Dialog implements
+public class PreviewDialog extends Dialog implements
         android.view.View.OnClickListener {
 
 
@@ -27,7 +27,7 @@ public class CustomDialogClass extends Dialog implements
     Animation rotateAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.rotate);
     private ImageView loadingImageView;
 
-    public CustomDialogClass(Activity a) {
+    public PreviewDialog(Activity a) {
         super(a);
         ownerActivity = a;
         // TODO Auto-generated constructor stub

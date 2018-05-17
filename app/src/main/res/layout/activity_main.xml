@@ -16,6 +16,7 @@
         android:layout_x="0dp"
         android:elevation="5dp"
         android:layout_y="0dp"
+        android:keepScreenOn="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="?android:attr/panelBackground" />

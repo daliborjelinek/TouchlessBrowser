@@ -71,18 +71,15 @@ public class OnGetImageListener implements OnImageAvailableListener {
     private Bitmap mRGBframeBitmap = null;
     private Bitmap mCroppedBitmap = null;
     private Bitmap mResizedBitmap = null;
-    private Bitmap mInversedBipmap = null;
+    private Bitmap mInversedBitmap = null;
 
     private boolean mIsComputing = false;
     private Handler mInferenceHandler;
     private Activity mActivity;
 
-    private int max[] = {1000,10,0,1000};
-
     private Context mContext;
     private FaceDet mFaceDet;
-    //private TrasparentTitleView mTransparentTitleView;
-    //private FloatingCameraWindow mWindow;
+
     private Paint mFaceLandmardkPaint;
     private Paint infoPaint;
 
@@ -92,11 +89,9 @@ public class OnGetImageListener implements OnImageAvailableListener {
             final Context context,
             AssetManager assets, final Handler handler,Activity activity) {
         this.mContext = context;
-      //  this.mTransparentTitleView = scoreView;
         this.mActivity = activity;
-        this.mInferenceHandler = new Handler(context.getMainLooper());;
+        this.mInferenceHandler = new Handler(context.getMainLooper());
         mFaceDet = new FaceDet(Constants.getFaceShapeModelPath());
-      //  mWindow = new FloatingCameraWindow(mContext);
         mFaceLandmardkPaint = new Paint();
         infoPaint = new Paint();
         infoPaint.setTextSize(50f);
@@ -104,7 +99,6 @@ public class OnGetImageListener implements OnImageAvailableListener {
         mFaceLandmardkPaint.setStyle(Paint.Style.STROKE);
         mFaceLandmardkPaint.setStrokeWidth(1);
         mFaceLandmardkPaint.setColor(Color.GREEN);
-        Log.d("IMAGE LISTENER","wasinitialized!!!!!!!!! ");
 
     }
 
@@ -167,10 +161,6 @@ public class OnGetImageListener implements OnImageAvailableListener {
         return inversedImage;
     }
 
-    public int coord( ArrayList<Point> list, boolean axis, int index){
-        float res = axis? list.get(index).x :list.get(index).y;
-        return (int)(res*4.5f);
-    }
 
     @Override
     public void onImageAvailable(final ImageReader reader) {
@@ -247,13 +237,12 @@ public class OnGetImageListener implements OnImageAvailableListener {
         mRGBframeBitmap.setPixels(mRGBBytes, 0, mPreviewWdith, 0, 0, mPreviewWdith, mPreviewHeight);
         drawResizedBitmap(mRGBframeBitmap, mCroppedBitmap);
 
-        mInversedBipmap = imageSideInversion(mCroppedBitmap);
-        mResizedBitmap = Bitmap.createScaledBitmap(mInversedBipmap, (int)(INPUT_SIZE/4.5), (int)(INPUT_SIZE/4.5), true);
+        mInversedBitmap = imageSideInversion(mCroppedBitmap);
+        mResizedBitmap = Bitmap.createScaledBitmap(mInversedBitmap, (int)(INPUT_SIZE/4.5), (int)(INPUT_SIZE/4.5), true);
 
         if (!new File(Constants.getFaceShapeModelPath()).exists()) {
             // mTransparentTitleView.setText("Copying landmark model to " + Constants.getFaceShapeModelPath());
             FileUtils.copyFileFromRawToOthers(mContext, R.raw.shape_predictor_68_face_landmarks, Constants.getFaceShapeModelPath());
-            Log.d("ddwa","adw"+Constants.getFaceShapeModelPath());
         }
 
         if(mframeNum % 3 == 0){
@@ -267,7 +256,7 @@ public class OnGetImageListener implements OnImageAvailableListener {
         }
 
 
-
+        // mInversedBitmap.eraseColor(Color.BLACK);
         mInferenceHandler.post(
                 new Runnable() {
                     @Override
@@ -278,34 +267,16 @@ public class OnGetImageListener implements OnImageAvailableListener {
                         if (results.size() != 0) {
                             for (final VisionDetRet ret : results) {
                                 float resizeRatio = 4.5f;
-                                Canvas canvas = new Canvas(mInversedBipmap);
+                                Canvas canvas = new Canvas(mInversedBitmap);
                                 Rect bounds = new Rect();
                                 bounds.left = (int) (ret.getLeft() * resizeRatio);
                                 bounds.top = (int) (ret.getTop() * resizeRatio);
                                 bounds.right = (int) (ret.getRight() * resizeRatio);
                                 bounds.bottom = (int) (ret.getBottom() * resizeRatio);
-                                canvas.drawRect(bounds, mFaceLandmardkPaint);
+                              //  canvas.drawRect(bounds, mFaceLandmardkPaint);
                                 // Draw landmark
                                 ArrayList<Point> landmarks = ret.getFaceLandmarks();
                                 int i = 0;
-                                int horizontal;
-                                int vertical;
-                                if(landmarks.get(30).y < max[0]) max[0] = landmarks.get(30).y;
-                                if(landmarks.get(30).y > max[2]) max[2] = landmarks.get(30).y;
-                                if(landmarks.get(30).x > max[1]) max[1] = landmarks.get(30).x;
-                                if(landmarks.get(30).x < max[3]) max[3] = landmarks.get(30).x;
-
-                                int smile = (landmarks.get(66).y - landmarks.get(62).y) * (landmarks.get(54).x - landmarks.get(49).x);
-                                vertical = (landmarks.get(30).y - landmarks.get(27).y)*2 - (landmarks.get(8).y - landmarks.get(30).y);
-                                horizontal = (landmarks.get(30).x -landmarks.get(2).x) - (landmarks.get(14).x - landmarks.get(30).x);
-
-
-                                canvas.drawText("s: "+ Integer.toString(smile),100,100,infoPaint);
-                                canvas.drawText("v: "+ Integer.toString(vertical),100,200,infoPaint);
-                                canvas.drawText("h: "+ Integer.toString(horizontal),100,300,infoPaint);
-
-                                canvas.drawText("t: "+ Integer.toString((landmarks.get(30).y - landmarks.get(27).y)),250,200,infoPaint);
-                                canvas.drawText("d: "+ Integer.toString((landmarks.get(8).y - landmarks.get(30).y)),250,300,infoPaint);
 
                                 for (Point point : landmarks) {
 
@@ -316,13 +287,28 @@ public class OnGetImageListener implements OnImageAvailableListener {
                                     i++;
 
                                 }
+                                int horizontal;
+                                int vertical;
+
+                                int smile = (landmarks.get(66).y - landmarks.get(62).y) * (landmarks.get(54).x - landmarks.get(49).x);
+                                vertical = (landmarks.get(30).y - landmarks.get(27).y)*2 - (landmarks.get(8).y - landmarks.get(30).y);
+                                horizontal = (landmarks.get(30).x -landmarks.get(2).x) - (landmarks.get(14).x - landmarks.get(30).x);
+
+
+                                canvas.drawText("s: "+ Integer.toString(smile),100,100,infoPaint);
+                                canvas.drawText("v: "+ Integer.toString(vertical),100,200,infoPaint);
+                                canvas.drawText("h: "+ Integer.toString(horizontal),100,300,infoPaint);
+
+                               // canvas.drawText("t: "+ Integer.toString((landmarks.get(30).y - landmarks.get(27).y)),250,200,infoPaint);
+                                //canvas.drawText("d: "+ Integer.toString((landmarks.get(8).y - landmarks.get(30).y)),250,300,infoPaint);
+
+
 
                             }
-                            ((MainActivity)mActivity).setNewLandmarks(results.get(0).getFaceLandmarks(),mInversedBipmap,max);
+                            ((MainActivity)mActivity).onLandmarksAvailable(results.get(0).getFaceLandmarks(), mInversedBitmap);
                         }
 
                         mframeNum++;
-                        //mWindow.setRGBBitmap(mInversedBipmap);
 
 
                         mIsComputing = false;

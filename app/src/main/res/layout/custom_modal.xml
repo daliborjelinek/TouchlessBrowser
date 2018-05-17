@@ -31,11 +31,12 @@
         android:background="@android:color/white"
         android:clickable="true"
         android:elevation="0dp"
-        android:text="Calibrate"
+        android:focusable="true"
+        android:text="Settings"
         android:textColor="#5DBCD2"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@+id/imageView"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" android:focusable="true"/>
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
     <Button
         android:id="@+id/btn_no"
